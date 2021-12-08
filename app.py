@@ -2,125 +2,131 @@
 import dash
 import dash_bootstrap_components as dbc
 from dash import dcc, html
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 
 # READ DATA
 
 VERSION = 'HPG-NPK #00'
 
-# create category
-# bins = [0, 0.8, 1.2, 100]
-# names = ['small', 'similar', 'bigger']
-# df['StarSize'] = pd.cut(df['RSTAR'], bins, labels=names)
-
 # LAYOUT
 
-options = [{'label': i, 'value': i} for i in [15, 30, 60, 120, 240]]
-wvwma_selector = html.Div(
-    [
-        dbc.Label("WVWMA"),
-        dcc.Dropdown(
-            id='wvwma-selector',
-            options=options,
-            value=[],
-            multi=True,
-            persistence=True, persistence_type='local',
-        )]
-)
-sma_selector = html.Div(
-    [
-        dbc.Label("SMA"),
-        dcc.Dropdown(
-            id='sma-selector',
-            options=options,
-            value=[],
-            multi=True,
-            persistence=True, persistence_type='local',
-        )]
-)
-
-vol_level_selector = dcc.RangeSlider(
-    id='vol-level-slider',
-    min=0,
-    max=100,
-    value=[0, 100],
-    # allowCross=False,
-    # pushable=1,
-    tooltip={'always_visible': True, 'placement': 'bottom'},
-    persistence=True, persistence_type='local',
-)
-refresh = dbc.Row(
-    [
-        dbc.Col(dbc.Button('Refresh', id="refresh", color="primary", outline=True), width=1),
-        dbc.Col(dcc.Loading(html.Div(id='out-btc'))),
-        dbc.Col(html.Div(id='out-dump'), width=0),
-    ], justify="start",
-)
-interval_reload = dcc.Interval(
-    id='interval-reload',
-    interval=60000,  # in milliseconds
-    n_intervals=0
-)
+tab1_content = [
+    # Header
+    dbc.Row(
+        [
+            dbc.Col(html.H5('Макропрофиль в мг/л (ppm)')),
+            dbc.Col(html.H6('Рассчет макропрофилей и навесок солей')),
+            dbc.Col(dbc.Button('Help', id="Help", color="primary", outline=True), align="end"),
+        ]
+        # , style={'margin-bottom': 40}
+    ),
+    dbc.Row(
+        [
+            dbc.Col(html.Div('N', style={'text-align': 'center'}), width={'size': 1, 'offset': 1}),
+            dbc.Col(html.Div('P', style={'text-align': 'center'}), width=1),
+            dbc.Col(html.Div('K', style={'text-align': 'center'}), width=1),
+            dbc.Col(html.Div('Ca', style={'text-align': 'center'}), width=1),
+            dbc.Col(html.Div('Mg', style={'text-align': 'center'}), width=1),
+            dbc.Col(html.Div('S', style={'text-align': 'center'}), width=1),
+            dbc.Col(html.Div('Cl', style={'text-align': 'center'}), width=1),
+            dbc.Col(html.Div('EC', style={'text-align': 'center'}), width=1),
+        ], style={'margin-top': 20}, align="center",
+    ),
+    dbc.Row(
+        [
+            # dbc.Col(html.Div(''), width=1),
+            dbc.Col(dbc.Input(id='N', value=220, persistence=True, persistence_type='local'), width={'size': 1, 'offset': 1}),
+            dbc.Col(dbc.Input(id='P', value=220, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(dbc.Input(id='K', value=220, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(dbc.Input(id='Ca', value=220, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(dbc.Input(id='Mg', value=220, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(dbc.Input(id='S', value=220, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(dbc.Input(id='Cl', value=220, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(dbc.Input(id='EC', value=220, persistence=True, persistence_type='local'), width=1),
+        ], align="center"
+    ),
+    dbc.Row(
+        [
+            dbc.Col(html.Div('NO3', style={'text-align': 'right'}), width=1),
+            dbc.Col(dbc.Input(id='NO3', value=220, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(html.Div('NH4:NO3'), width=1),
+            dbc.Col(html.Div(id='NH4NO3_val'), width=1),
+            dbc.Col(html.Div(id='N-prop'), width={"order": "last", "offset": 2}),
+        ], style={'margin-top': 20}, align="center"
+    ),
+    dbc.Row(
+        [
+            dbc.Col(html.Div('NH4', style={'text-align': 'right'}), width=1),
+            dbc.Col(dbc.Input(id='NH4', value=20, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(dbc.Input(id='NH4NO3', value=0.1, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(html.Div(id='NPK'), width={"order": "last", "offset": 2}),
+        ], style={'margin-top': 20}, align="center"
+    ),
+    html.Hr(),
+    dbc.Row(
+        [
+            dbc.Alert(id='NPK-string', color="dark"),
+        ], style={'margin-top': 20}
+    ),
+]
+tab2_content = []
+tab3_content = [html.Div('2021, HPG-NPK калькулятор.'),
+                html.Div('astroill@gmail.com')]
 
 app = dash.Dash(
+    # __name__, external_stylesheets=[dbc.themes.GRID]
     __name__, external_stylesheets=[dbc.themes.FLATLY]
 )
 
 app.layout = html.Div(
     [
-        interval_reload,
+        # interval_reload,
+        # Header
         dbc.Row(
             html.H1(VERSION),
             style={'margin-bottom': 40}
         ),
         dbc.Row(
             [
-                dbc.Col(wvwma_selector),
-                dbc.Col(sma_selector),
+                dbc.Tabs(
+                    [
+                        dbc.Tab(tab1_content, label='Macro'),
+                        dbc.Tab(tab2_content, label='Micro'),
+                        dbc.Tab(tab3_content, label='About'),
+                    ]
+                )
             ],
             style={'margin-bottom': 40}
         ),
-        dbc.Row(
-            html.Div(refresh),
-            style={'margin-bottom': 40}
-        ),
-        dbc.Row(
-            [
-                html.Div(vol_level_selector),
-                html.Div(id='btc-chart')
-            ],
-            style={'margin-bottom': 40}
-        )
     ],
     style={'margin-left': '80px', 'margin-right': '80px'}
 )
 
 """ CALLBACK """
 
-
-# @app.callback(
-#     Output(component_id='out-dump', component_property='children'),
-#     [Input(component_id='refresh', component_property='n_clicks'),
-#      # Input(component_id='vol-level-slider', component_property='value'),
-#      Input('interval-reload', 'n_intervals')]
-# )
-# def update_df(n, nn):
-#     cry.load(limit=LIMIT)
-#     return ' '
-
-
 @app.callback(
-    [Output(component_id='out-btc', component_property='children')],
-    [Input(component_id='refresh', component_property='n_clicks'),
-     Input(component_id='vol-level-slider', component_property='value'),
-     Input('interval-reload', 'n_intervals'),
-     Input(component_id='wvwma-selector', component_property='value'),
-     Input(component_id='sma-selector', component_property='value')]
+    [Output('N-prop', 'children'),
+    Output('NPK', 'children'),
+    Output('NPK-string', 'children')],
+    [Input('N', 'value'),
+    Input('P', 'value'),
+    Input('K', 'value'),
+    Input('Ca', 'value'),
+    Input('Mg', 'value'),
+    Input('S', 'value'),
+    Input('Cl', 'value'),
+    Input('EC', 'value'),
+    Input('NH4NO3', 'value'),
+    ]
 )
-def update_status(n, range_vol_level, nn, wvwma_select, sma_select):
-    html1 = [html.Div('N= P= K=', className='header_plots')]
+def update_status(n, p, k, ca, mg, s, cl, ec, nh4no3):
+    no3 = n*(1-nh4no3)
+    nh4 = n*nh4no3
+    n_prop = f'N={n} P={p} K={k} Ca={ca} Mg={mg} S={s} Cl={cl} sPPM={ec//2}'
+    npk = f'NPK: {n}-{p}-{k} CaO={ca}% MgO={mg}% SO3={s}%'
+    npk_string = f'N={n} NO3={no3} NH4={nh4} P={p} K={k} Ca={ca} Mg={mg} S={s} Cl={cl}'
 
-    return html1
+    return n_prop, npk, npk_string
 
 
 if __name__ == '__main__':
