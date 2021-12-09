@@ -22,14 +22,14 @@ tab1_content = [
     ),
     dbc.Row(
         [
-            dbc.Col(html.Div('N', style={'text-align': 'center'}), width={'size': 1, 'offset': 1}),
-            dbc.Col(html.Div('P', style={'text-align': 'center'}), width=1),
-            dbc.Col(html.Div('K', style={'text-align': 'center'}), width=1),
-            dbc.Col(html.Div('Ca', style={'text-align': 'center'}), width=1),
-            dbc.Col(html.Div('Mg', style={'text-align': 'center'}), width=1),
-            dbc.Col(html.Div('S', style={'text-align': 'center'}), width=1),
-            dbc.Col(html.Div('Cl', style={'text-align': 'center'}), width=1),
-            dbc.Col(html.Div('EC', style={'text-align': 'center'}), width=1),
+            dbc.Col(html.Div('N', className='zag'), width={'size': 1, 'offset': 1}),
+            dbc.Col(html.Div('P', className='zag'), width=1),
+            dbc.Col(html.Div('K', className='zag'), width=1),
+            dbc.Col(html.Div('Ca', className='zag'), width=1),
+            dbc.Col(html.Div('Mg', className='zag'), width=1),
+            dbc.Col(html.Div('S', className='zag'), width=1),
+            dbc.Col(html.Div('Cl', className='zag'), width=1),
+            dbc.Col(html.Div('EC', className='zag'), width=1),
         ], style={'margin-top': 20}, align="center",
     ),
     dbc.Row(
@@ -51,7 +51,7 @@ tab1_content = [
             dbc.Col(dbc.Input(id='NO3', value=220, persistence=True, persistence_type='local'), width=1),
             dbc.Col(html.Div('NH4:NO3'), width=1),
             dbc.Col(html.Div(id='NH4NO3_val'), width=1),
-            dbc.Col(html.Div(id='N-prop'), width={"order": "last", "offset": 2}),
+            dbc.Col(html.Div(id='N-prop'), width={"order": "last", "offset": 1}),
         ], style={'margin-top': 20}, align="center"
     ),
     dbc.Row(
@@ -62,7 +62,12 @@ tab1_content = [
             dbc.Col(html.Div(id='NPK'), width={"order": "last", "offset": 2}),
         ], style={'margin-top': 20}, align="center"
     ),
-    html.Hr(),
+    # html.Hr(),
+    #dash layout code
+    html.Div(className='gap'),
+    html.Div(className='li'),
+    html.Div(className='gap'),
+    html.Div(className='li'),
     dbc.Row(
         [
             dbc.Alert(id='NPK-string', color="dark"),
