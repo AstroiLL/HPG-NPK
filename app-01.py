@@ -1,7 +1,7 @@
 # Plotly Dash
 import dash
 import dash_bootstrap_components as dbc
-from dash import dcc, html
+from dash import html
 from dash.dependencies import Input, Output
 
 # READ DATA
@@ -35,20 +35,25 @@ tab1_content = [
     dbc.Row(
         [
             # dbc.Col(html.Div(''), width=1),
-            dbc.Col(dbc.Input(id='N', value=220, persistence=True, persistence_type='local'), width={'size': 1, 'offset': 1}),
-            dbc.Col(dbc.Input(id='P', value=220, persistence=True, persistence_type='local'), width=1),
-            dbc.Col(dbc.Input(id='K', value=220, persistence=True, persistence_type='local'), width=1),
-            dbc.Col(dbc.Input(id='Ca', value=220, persistence=True, persistence_type='local'), width=1),
-            dbc.Col(dbc.Input(id='Mg', value=220, persistence=True, persistence_type='local'), width=1),
-            dbc.Col(dbc.Input(id='S', value=220, persistence=True, persistence_type='local'), width=1),
-            dbc.Col(dbc.Input(id='Cl', value=220, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(
+                dbc.Input(
+                    id='N', value=220.0, type="number", step=0.1, min=0.1, max=300, persistence=True,
+                    persistence_type='local'
+                    ), width={'size': 1, 'offset': 1}
+                ),
+            dbc.Col(dbc.Input(id='P', value=40, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(dbc.Input(id='K', value=300, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(dbc.Input(id='Ca', value=150, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(dbc.Input(id='Mg', value=50, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(dbc.Input(id='S', value=40, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(dbc.Input(id='Cl', value=0, persistence=True, persistence_type='local'), width=1),
             dbc.Col(dbc.Input(id='EC', value=2, persistence=True, persistence_type='local'), width=1),
         ], align="center"
     ),
     dbc.Row(
         [
             dbc.Col(html.Div('NO3', style={'text-align': 'right'}), width=1),
-            dbc.Col(dbc.Input(id='NO3', value=220, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(dbc.Input(id='NO3', type="number", step=0.1, min=0.1, max=300, persistence=True, persistence_type='local'), width=1),
             dbc.Col(html.Div('NH4:NO3'), width=1),
             dbc.Col(html.Div(id='NH4NO3_val'), width=1),
             dbc.Col(html.Div(id='N-prop'), width={"order": "last", "offset": 1}),
@@ -57,13 +62,18 @@ tab1_content = [
     dbc.Row(
         [
             dbc.Col(html.Div('NH4', style={'text-align': 'right'}), width=1),
-            dbc.Col(dbc.Input(id='NH4', value=20, persistence=True, persistence_type='local'), width=1),
-            dbc.Col(dbc.Input(id='NH4NO3', type="number", step=0.1, value=0.1, min=0.1, max=1, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(dbc.Input(id='NH4', type="number", step=0.1, min=0.1, max=300, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(
+                dbc.Input(
+                    id='NH4NO3', type="number", step=0.1, value=0.1, min=0.1, max=1, persistence=True,
+                    persistence_type='local'
+                    ), width=1
+                ),
             dbc.Col(html.Div(id='NPK'), width={"order": "last", "offset": 2}),
         ], style={'margin-top': 20}, align="center"
     ),
     # html.Hr(),
-    #dash layout code
+    # dash layout code
     html.Div(className='gap'),
     html.Div(className='li'),
     html.Div(className='gap'),
@@ -109,41 +119,45 @@ app.layout = html.Div(
 
 """ CALLBACKS """
 
+
 @app.callback(
     [Output('NO3', 'value'),
-    Output('NH4', 'value'),
-    ],
+     Output('NH4', 'value'),
+     ],
     [Input('N', 'value'),
-    Input('NH4NO3', 'value'),
-    ]
+     Input('NH4NO3', 'value'),
+     ]
 )
 def update_NH4NO3(n, nh4no3):
-    no3 = n*(1-float(nh4no3))
-    nh4 = n*float(nh4no3)
-    return no3, nh4
+    nh4no3 = float(nh4no3)
+    no3 = n * (1 - nh4no3)
+    nh4 = n * nh4no3
+    return round(no3, 1), round(nh4, 1)
+
 
 @app.callback(
     [Output('N-prop', 'children'),
-    Output('NPK', 'children'),
-    Output('NPK-string', 'children')],
+     Output('NPK', 'children'),
+     Output('NPK-string', 'children')],
     [Input('N', 'value'),
-    Input('P', 'value'),
-    Input('K', 'value'),
-    Input('Ca', 'value'),
-    Input('Mg', 'value'),
-    Input('S', 'value'),
-    Input('Cl', 'value'),
-    Input('EC', 'value'),
-    Input('NH4NO3', 'value'),
-    ]
+     Input('P', 'value'),
+     Input('K', 'value'),
+     Input('Ca', 'value'),
+     Input('Mg', 'value'),
+     Input('S', 'value'),
+     Input('Cl', 'value'),
+     Input('EC', 'value'),
+     Input('NH4', 'value'),
+     Input('NO3', 'value'),
+     ]
 )
-def update_status(n, p, k, ca, mg, s, cl, ec, nh4no3):
-    no3 = n*(1-float(nh4no3))
-    nh4 = n*float(nh4no3)
-    n_prop = f'N={n} P={p} K={k} Ca={ca} Mg={mg} S={s} Cl={cl} sPPM={ec//2}'
-    npk = f'NPK: {n}-{p}-{k} CaO={ca}% MgO={mg}% SO3={s}%'
-    # npk_string = f'N={n}  P={p} K={k} Ca={ca} Mg={mg} S={s} Cl={cl}'
-    npk_string = f'N={n} NO3={no3} NH4={nh4} P={p} K={k} Ca={ca} Mg={mg} S={s} Cl={cl}'
+def update_status(n, p, k, ca, mg, s, cl, ec, nh4, no3):
+    # nh4no3 = float(nh4no3)
+    # no3 = n * (1 - nh4no3)
+    # nh4 = n * nh4no3
+    n_prop = f'N={n} P={p} K={k} Ca={ca} Mg={mg} S={s} Cl={cl} sPPM={ec / 2}'
+    npk = f'NPK: {n:.0f}-{p}-{k} CaO={ca}% MgO={mg}% SO3={s}%'
+    npk_string = f'N={n} NO3={no3:.1f} NH4={nh4:.1f} P={p} K={k} Ca={ca} Mg={mg} S={s} Cl={cl}'
 
     return n_prop, npk, npk_string
 
