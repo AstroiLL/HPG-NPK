@@ -6,7 +6,7 @@ from dash.dependencies import Input, Output
 
 # READ DATA
 
-VERSION = 'HPG-NPK #00'
+VERSION = 'HPG-NPK #01'
 
 # LAYOUT
 
@@ -37,7 +37,7 @@ tab1_content = [
             # dbc.Col(html.Div(''), width=1),
             dbc.Col(
                 dbc.Input(
-                    id='N', value=220.0, type="number", step=0.1, min=0.1, max=300, persistence=True,
+                    id='N', value=220.0, type="number", step=0.1, min=0, max=300, persistence=True,
                     persistence_type='local'
                     ), width={'size': 1, 'offset': 1}
                 ),
@@ -53,7 +53,7 @@ tab1_content = [
     dbc.Row(
         [
             dbc.Col(html.Div('NO3', style={'text-align': 'right'}), width=1),
-            dbc.Col(dbc.Input(id='NO3', type="number", step=0.1, min=0.1, max=300, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(dbc.Input(id='NO3', type="number", step=0.1, min=0, max=300, persistence=True, persistence_type='local'), width=1),
             dbc.Col(html.Div('NH4:NO3'), width=1),
             dbc.Col(html.Div(id='NH4NO3_val'), width=1),
             dbc.Col(html.Div(id='N-prop'), width={"order": "last", "offset": 1}),
@@ -62,10 +62,10 @@ tab1_content = [
     dbc.Row(
         [
             dbc.Col(html.Div('NH4', style={'text-align': 'right'}), width=1),
-            dbc.Col(dbc.Input(id='NH4', type="number", step=0.1, min=0.1, max=300, persistence=True, persistence_type='local'), width=1),
+            dbc.Col(dbc.Input(id='NH4', type="number", step=0.1, min=0, max=300, persistence=True, persistence_type='local'), width=1),
             dbc.Col(
                 dbc.Input(
-                    id='NH4NO3', type="number", step=0.1, value=0.1, min=0.1, max=1, persistence=True,
+                    id='NH4NO3', type="number", inputmode="numeric", step=0.1, value=0, min=0, max=0.5, persistence=True,
                     persistence_type='local'
                     ), width=1
                 ),
@@ -117,22 +117,39 @@ app.layout = html.Div(
     style={'margin-left': '80px', 'margin-right': '80px'}
 )
 
-""" CALLBACKS """
+def isnoneto0(x):
+    return 0 if x is None else x
+
+
+# CALLBACKS
 
 
 @app.callback(
     [Output('NO3', 'value'),
      Output('NH4', 'value'),
+     Output('NH4NO3', 'value'),
      ],
     [Input('N', 'value'),
+     Input('NO3', 'value'),
+     Input('NH4', 'value'),
      Input('NH4NO3', 'value'),
      ]
 )
-def update_NH4NO3(n, nh4no3):
-    nh4no3 = float(nh4no3)
+def update_NH4NO3(n, no3, nh4, nh4no3):
+    # print(type(nh4no3))
+    if n is None:
+        return dash.no_update, dash.no_update, dash.no_update
+    if no3 is None:
+        no3 = n * (1 - nh4no3)
+    if nh4 is None:
+        nh4 = n * nh4no3
+    if nh4no3 is None:
+        return dash.no_update, dash.no_update, dash.no_update
+    # nh4no3 = float(nh4no3)
+    # print(type(nh4no3))
     no3 = n * (1 - nh4no3)
     nh4 = n * nh4no3
-    return round(no3, 1), round(nh4, 1)
+    return round(no3, 1), round(nh4, 1), round(nh4no3, 1)
 
 
 @app.callback(
@@ -155,9 +172,14 @@ def update_status(n, p, k, ca, mg, s, cl, ec, nh4, no3):
     # nh4no3 = float(nh4no3)
     # no3 = n * (1 - nh4no3)
     # nh4 = n * nh4no3
-    n_prop = f'N={n} P={p} K={k} Ca={ca} Mg={mg} S={s} Cl={cl} sPPM={ec / 2}'
-    npk = f'NPK: {n:.0f}-{p}-{k} CaO={ca}% MgO={mg}% SO3={s}%'
-    npk_string = f'N={n} NO3={no3:.1f} NH4={nh4:.1f} P={p} K={k} Ca={ca} Mg={mg} S={s} Cl={cl}'
+    try:
+        n_prop = f'N={n} P={p} K={k} Ca={ca} Mg={mg} S={s} Cl={cl} sPPM={ec / 2}'
+        npk = f'NPK: {n:.0f}-{p}-{k} CaO={ca}% MgO={mg}% SO3={s}%'
+        npk_string = f'N={n} NO3={no3:.1f} NH4={nh4:.1f} P={p} K={k} Ca={ca} Mg={mg} S={s} Cl={cl}'
+    except:
+        n_prop = 'Error inputing'
+        npk = 'Error inputing'
+        npk_string = 'Error inputing'
 
     return n_prop, npk, npk_string
 
