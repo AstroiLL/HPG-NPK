@@ -75,7 +75,7 @@ tab1_content = [
                 ),
             dbc.Col(
                 dbc.Input(
-                    id='NH4NO3', type="number", step=0.01, value=0, min=0, max=0.5, persistence=True,
+                    id='NH4NO3', type="number", step=0.01, value=0.25, min=0, max=0.5, persistence=True,
                     persistence_type='local'
                 ), width=1
             ),
@@ -96,7 +96,7 @@ tab1_content = [
 ]
 tab2_content = []
 tab3_content = [html.Div('2021, HPG-NPK калькулятор.'),
-                html.Div('astroill@gmail.com')]
+                html.Div('AstroiLL@gmail.com')]
 
 app = dash.Dash(
     # __name__, external_stylesheets=[dbc.themes.GRID]
@@ -136,12 +136,15 @@ def isnoneto0(x):
 @app.callback(
     [Output('NO3', 'max'),
      Output('NH4', 'max'),
+     Output('NO3', 'min'),
      ],
     [Input('N', 'value'),
      ]
 )
 def update_max(n):
-    return n, n/2
+    if n is None:
+        return dash.no_update, dash.no_update, dash.no_update
+    return n, n/2, n/2
 
 
 @app.callback(
@@ -196,17 +199,12 @@ def update_NH4NO3(n, no3, nh4, nh4no3):
      ]
 )
 def update_status(n, p, k, ca, mg, s, cl, ec, nh4, no3):
-    # nh4no3 = float(nh4no3)
-    # no3 = n * (1 - nh4no3)
-    # nh4 = n * nh4no3
     try:
         n_prop = f'N={n} P={p} K={k} Ca={ca} Mg={mg} S={s} Cl={cl} sPPM={ec / 2}'
         npk = f'NPK: {n:.0f}-{p}-{k} CaO={ca}% MgO={mg}% SO3={s}%'
         npk_string = f'N={n} NO3={no3:.1f} NH4={nh4:.1f} P={p} K={k} Ca={ca} Mg={mg} S={s} Cl={cl}'
     except:
-        n_prop = 'Error inputing'
-        npk = 'Error inputing'
-        npk_string = 'Error inputing'
+        return 'wrong parameters', 'wrong parameters', 'wrong parameters'
 
     return n_prop, npk, npk_string
 
