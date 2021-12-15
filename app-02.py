@@ -75,7 +75,7 @@ tab1_content = [
                 ),
             dbc.Col(
                 dbc.Input(
-                    id='NH4NO3', type="number", step=0.01, value=0.25, min=0, max=0.5, persistence=True,
+                    id='NH4NO3', type="number", step=0.01, value=0.1, min=0, max=0.5, persistence=True,
                     persistence_type='local'
                 ), width=1
             ),
