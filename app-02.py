@@ -82,10 +82,7 @@ tab1_content = [
             dbc.Col(html.Div(id='NPK'), width={"order": "last", "offset": 2}),
         ], style={'margin-top': 20}, align="center"
     ),
-    # html.Hr(),
     # dash layout code
-    html.Div(className='gap'),
-    html.Div(className='li'),
     html.Div(className='gap'),
     html.Div(className='li'),
     dbc.Row(
@@ -162,18 +159,12 @@ def update_NH4NO3(n, no3, nh4, nh4no3):
     if n is None or no3 is None or nh4 is None or nh4no3 is None:
         return dash.no_update, dash.no_update, dash.no_update
     ctx = dash.callback_context
-    # print(ctx.triggered)
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    # print(no3, nh4, nh4no3)
     if trigger_id == "NO3":
-        # if no3 is None:
-        #     no3 = n * (1 - nh4no3)
         nh4no3 = 1 - (no3 / n)
         nh4 = n * nh4no3
         return dash.no_update, round(nh4, 1), round(nh4no3, 2)
     if trigger_id == "NH4":
-        # if nh4 is None:
-        #     nh4 = n * nh4no3
         nh4no3 = nh4 / n
         no3 = n * (1 - nh4no3)
         return round(no3, 1), dash.no_update, round(nh4no3, 2)
