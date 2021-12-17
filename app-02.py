@@ -16,7 +16,7 @@ tab1_content = [
         [
             dbc.Col(html.H5('Макропрофиль в мг/л (ppm)')),
             dbc.Col(html.H6('Рассчет макропрофилей и навесок солей')),
-            dbc.Col(dbc.Button('Help', id="Help", color="primary", outline=True), align="end"),
+            dbc.Col(dbc.Button('Help', id="Help", href='https://github.com', color="primary", outline=True), align="end"),
         ]
         # , style={'margin-bottom': 40}
     ),
@@ -34,20 +34,27 @@ tab1_content = [
     ),
     dbc.Row(
         [
-            # dbc.Col(html.Div(''), width=1),
             dbc.Col(
                 dbc.Input(
                     id='N', value=220.0, type="number", step=0.1, min=0.1, max=300, persistence=True,
                     persistence_type='local'
                 ), width={'size': 1, 'offset': 1}
             ),
+            dbc.Tooltip('Общее количество азота', target='N'),
             dbc.Col(dbc.Input(id='P', value=40, persistence=True, persistence_type='local'), width=1),
+            dbc.Tooltip('Общее количество фосфора', target='P'),
             dbc.Col(dbc.Input(id='K', value=300, persistence=True, persistence_type='local'), width=1),
+            dbc.Tooltip('Общее количество калия', target='K'),
             dbc.Col(dbc.Input(id='Ca', value=150, persistence=True, persistence_type='local'), width=1),
+            dbc.Tooltip('Общее количество кальция', target='Ca'),
             dbc.Col(dbc.Input(id='Mg', value=50, persistence=True, persistence_type='local'), width=1),
+            dbc.Tooltip('Общее количество магния', target='Mg'),
             dbc.Col(dbc.Input(id='S', value=40, persistence=True, persistence_type='local'), width=1),
+            dbc.Tooltip('Общее количество серы', target='S'),
             dbc.Col(dbc.Input(id='Cl', value=0, persistence=True, persistence_type='local'), width=1),
+            dbc.Tooltip('Общее количество хлора', target='Cl'),
             dbc.Col(dbc.Input(id='EC', value=2, persistence=True, persistence_type='local'), width=1),
+            dbc.Tooltip('Электропроводность раствора (mSm/cm)', target='EC'),
         ], align="center"
     ),
     dbc.Row(
@@ -55,10 +62,11 @@ tab1_content = [
             dbc.Col(html.Div('NO3', style={'text-align': 'right'}), width=1),
             dbc.Col(
                 dbc.Input(
-                    id='NO3', type="number", step=0.1, value=0, min=0, max=300, persistence=True,
+                    id='NO3', type="number", step=0.05, value=0, min=0, max=300, persistence=True,
                     persistence_type='local'
                     ), width=1
                 ),
+            dbc.Tooltip('Часть азотнокислого азота', target='NO3'),
             dbc.Col(html.Div('NH4:NO3'), width=1),
             dbc.Col(html.Div(id='NH4NO3_val'), width=1),
             dbc.Col(html.Div(id='N-prop'), width={"order": "last", "offset": 1}),
@@ -69,16 +77,18 @@ tab1_content = [
             dbc.Col(html.Div('NH4', style={'text-align': 'right'}), width=1),
             dbc.Col(
                 dbc.Input(
-                    id='NH4', type="number", step=0.1, value=0, min=0, max=300, persistence=True,
+                    id='NH4', type="number", step=0.05, value=0, min=0, max=300, persistence=True,
                     persistence_type='local'
                     ), width=1
                 ),
+            dbc.Tooltip('Часть аммонийного азота', target='NH4'),
             dbc.Col(
                 dbc.Input(
-                    id='NH4NO3', type="number", step=0.01, value=0.1, min=0, max=0.5, persistence=True,
+                    id='NH4NO3', type="number", step=0.05, value=0.1, min=0, max=0.5, persistence=True,
                     persistence_type='local'
                 ), width=1
             ),
+            dbc.Tooltip('Соотношение аммонийного и азотнокислого азота', target='NH4NO3'),
             dbc.Col(html.Div(id='NPK'), width={"order": "last", "offset": 2}),
         ], style={'margin-top': 20}, align="center"
     ),
@@ -90,6 +100,7 @@ tab1_content = [
             dbc.Alert(id='NPK-string', color="dark"),
         ], style={'margin-top': 20}
     ),
+    dbc.Tooltip('Строка для копирования профиля', target='NPK-string'),
 ]
 tab2_content = []
 tab3_content = [html.Div('2021, HPG-NPK калькулятор.'),
@@ -140,7 +151,8 @@ def isnoneto0(x):
 )
 def update_max(n):
     if n is None:
-        return dash.no_update, dash.no_update, dash.no_update
+        raise dash.exceptions.PreventUpdate
+        # return dash.no_update, dash.no_update, dash.no_update
     return n, n/2, n/2
 
 
@@ -157,7 +169,8 @@ def update_max(n):
 )
 def update_NH4NO3(n, no3, nh4, nh4no3):
     if n is None or no3 is None or nh4 is None or nh4no3 is None:
-        return dash.no_update, dash.no_update, dash.no_update
+        raise dash.exceptions.PreventUpdate
+        # return dash.no_update, dash.no_update, dash.no_update
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if trigger_id == "NO3":
@@ -195,7 +208,8 @@ def update_status(n, p, k, ca, mg, s, cl, ec, nh4, no3):
         npk = f'NPK: {n:.0f}-{p}-{k} CaO={ca}% MgO={mg}% SO3={s}%'
         npk_string = f'N={n} NO3={no3:.1f} NH4={nh4:.1f} P={p} K={k} Ca={ca} Mg={mg} S={s} Cl={cl}'
     except:
-        return 'wrong parameters', 'wrong parameters', 'wrong parameters'
+        raise dash.exceptions.PreventUpdate
+        # return 'wrong parameters', 'wrong parameters', 'wrong parameters'
 
     return n_prop, npk, npk_string
 
