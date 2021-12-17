@@ -3,6 +3,7 @@ import dash
 import dash_bootstrap_components as dbc
 from dash import html
 from dash.dependencies import Input, Output
+from calculate import calc
 
 # READ DATA
 
@@ -28,7 +29,6 @@ tab1_content = [
             dbc.Col(html.Div('Ca', className='zag'), width=1),
             dbc.Col(html.Div('Mg', className='zag'), width=1),
             dbc.Col(html.Div('S', className='zag'), width=1),
-            dbc.Col(html.Div('Cl', className='zag'), width=1),
             dbc.Col(html.Div('EC', className='zag'), width=1),
         ], style={'margin-top': 20}, align="center",
     ),
@@ -40,21 +40,19 @@ tab1_content = [
                     persistence_type='local'
                 ), width={'size': 1, 'offset': 1}
             ),
-            dbc.Tooltip('Общее количество азота', target='N'),
+            dbc.Tooltip('Общее количество азота', target='N', placement='top'),
             dbc.Col(dbc.Input(id='P', value=40, persistence=True, persistence_type='local'), width=1),
-            dbc.Tooltip('Общее количество фосфора', target='P'),
+            dbc.Tooltip('Общее количество фосфора', target='P', placement='top'),
             dbc.Col(dbc.Input(id='K', value=300, persistence=True, persistence_type='local'), width=1),
-            dbc.Tooltip('Общее количество калия', target='K'),
+            dbc.Tooltip('Общее количество калия', target='K', placement='top'),
             dbc.Col(dbc.Input(id='Ca', value=150, persistence=True, persistence_type='local'), width=1),
-            dbc.Tooltip('Общее количество кальция', target='Ca'),
+            dbc.Tooltip('Общее количество кальция', target='Ca', placement='top'),
             dbc.Col(dbc.Input(id='Mg', value=50, persistence=True, persistence_type='local'), width=1),
-            dbc.Tooltip('Общее количество магния', target='Mg'),
+            dbc.Tooltip('Общее количество магния', target='Mg', placement='top'),
             dbc.Col(dbc.Input(id='S', value=40, persistence=True, persistence_type='local'), width=1),
-            dbc.Tooltip('Общее количество серы', target='S'),
-            dbc.Col(dbc.Input(id='Cl', value=0, persistence=True, persistence_type='local'), width=1),
-            dbc.Tooltip('Общее количество хлора', target='Cl'),
+            dbc.Tooltip('Общее количество серы', target='S', placement='top'),
             dbc.Col(dbc.Input(id='EC', value=2, persistence=True, persistence_type='local'), width=1),
-            dbc.Tooltip('Электропроводность раствора (mSm/cm)', target='EC'),
+            dbc.Tooltip('Электропроводность раствора (mSm/cm)', target='EC', placement='top'),
         ], align="center"
     ),
     dbc.Row(
@@ -66,7 +64,7 @@ tab1_content = [
                     persistence_type='local'
                     ), width=1
                 ),
-            dbc.Tooltip('Часть азотнокислого азота', target='NO3'),
+            dbc.Tooltip('Часть азотнокислого азота', target='NO3', placement='left'),
             dbc.Col(html.Div('NH4:NO3'), width=1),
             dbc.Col(html.Div(id='NH4NO3_val'), width=1),
             dbc.Col(html.Div(id='N-prop'), width={"order": "last", "offset": 1}),
@@ -81,14 +79,14 @@ tab1_content = [
                     persistence_type='local'
                     ), width=1
                 ),
-            dbc.Tooltip('Часть аммонийного азота', target='NH4'),
+            dbc.Tooltip('Часть аммонийного азота', target='NH4', placement='left'),
             dbc.Col(
                 dbc.Input(
                     id='NH4NO3', type="number", step=0.05, value=0.1, min=0, max=0.5, persistence=True,
                     persistence_type='local'
                 ), width=1
             ),
-            dbc.Tooltip('Соотношение аммонийного и азотнокислого азота', target='NH4NO3'),
+            dbc.Tooltip('Соотношение аммонийного и азотнокислого азота', target='NH4NO3', placement='right'),
             dbc.Col(html.Div(id='NPK'), width={"order": "last", "offset": 2}),
         ], style={'margin-top': 20}, align="center"
     ),
@@ -136,9 +134,6 @@ app.layout = html.Div(
 )
 
 
-def isnoneto0(x):
-    return 0 if x is None else x
-
 
 # CALLBACKS
 @app.callback(
@@ -174,15 +169,12 @@ def update_NH4NO3(n, no3, nh4, nh4no3):
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if trigger_id == "NO3":
-        nh4no3 = 1 - (no3 / n)
-        nh4 = n * nh4no3
+        nh4no3, nh4 = calc(n, no3=no3)
         return dash.no_update, round(nh4, 1), round(nh4no3, 2)
     if trigger_id == "NH4":
-        nh4no3 = nh4 / n
-        no3 = n * (1 - nh4no3)
+        nh4no3, no3 = calc(n, nh4=nh4)
         return round(no3, 1), dash.no_update, round(nh4no3, 2)
-    no3 = n * (1 - nh4no3)
-    nh4 = n * nh4no3
+    no3, nh4 = calc(n, nh4no3=nh4no3)
     return round(no3, 1), round(nh4, 1), dash.no_update
 
 
@@ -196,17 +188,16 @@ def update_NH4NO3(n, no3, nh4, nh4no3):
      Input('Ca', 'value'),
      Input('Mg', 'value'),
      Input('S', 'value'),
-     Input('Cl', 'value'),
      Input('EC', 'value'),
      Input('NH4', 'value'),
      Input('NO3', 'value'),
      ]
 )
-def update_status(n, p, k, ca, mg, s, cl, ec, nh4, no3):
+def update_status(n, p, k, ca, mg, s, ec, nh4, no3):
     try:
-        n_prop = f'N={n} P={p} K={k} Ca={ca} Mg={mg} S={s} Cl={cl} sPPM={ec / 2}'
+        n_prop = f'N={n} P={p} K={k} Ca={ca} Mg={mg} S={s} sPPM={ec / 2}'
         npk = f'NPK: {n:.0f}-{p}-{k} CaO={ca}% MgO={mg}% SO3={s}%'
-        npk_string = f'N={n} NO3={no3:.1f} NH4={nh4:.1f} P={p} K={k} Ca={ca} Mg={mg} S={s} Cl={cl}'
+        npk_string = f'N={n} NO3={no3:.1f} NH4={nh4:.1f} P={p} K={k} Ca={ca} Mg={mg} S={s}'
     except:
         raise dash.exceptions.PreventUpdate
         # return 'wrong parameters', 'wrong parameters', 'wrong parameters'
