@@ -7,7 +7,7 @@ from calculate import calc
 
 # READ DATA
 
-VERSION = 'HPG-NPK #02'
+VERSION = 'HPG-NPK #03'
 
 # LAYOUT
 
